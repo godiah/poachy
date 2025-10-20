@@ -1,0 +1,70 @@
+
+services:
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    volumes:
+      - .:/var/www:ro
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ./Docker/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - poachy
+
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_NAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - poachy
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - poachy
+
+  app:
+    depends_on:
+      - db
+      - webserver
+      - redis
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: imanisoft
+    image: imanisoft
+    restart: unless-stopped
+    volumes:
+      - .:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    ports:
+      - "127.0.0.1:9000:9000"
+    env_file:
+      - ./.env
+    networks:
+      - poachy
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  poachy:
