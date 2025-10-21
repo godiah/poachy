@@ -23,7 +23,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
-    });
+    // Add your tenant-specific routes here
+    // Example:
+    // Route::get('/dashboard', [TenantDashboardController::class, 'index']);
 });

@@ -108,6 +108,7 @@ jobs:
           DB_DATABASE: ${{ env.MYSQL_DATABASE }}
           DB_USERNAME: ${{ secrets.MYSQL_USER }}
           DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          CENTRAL_DOMAINS: localhost,127.0.0.1
         run: php artisan test
 
   docker-build:
