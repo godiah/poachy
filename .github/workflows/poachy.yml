@@ -178,6 +178,26 @@ jobs:
       (github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'master'))
 
     steps:
+      - name: Check if deployment secrets are available
+        run: |
+          if [ -z "${{ secrets.SERVER_IP }}" ]; then
+            echo "ERROR: SERVER_IP secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
+            echo "ERROR: SSH_PRIVATE_KEY secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.SERVER_USER }}" ]; then
+            echo "ERROR: SERVER_USER secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.PROJECT_PATH }}" ]; then
+            echo "ERROR: PROJECT_PATH secret is not set"
+            exit 1
+          fi
+          echo "All deployment secrets are configured"
+
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -186,7 +206,15 @@ jobs:
       - name: Add server to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          echo "Scanning SSH keys for ${{ secrets.SERVER_IP }}..."
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts 2>&1 || {
+            echo "ERROR: Failed to scan SSH keys for server. Please check:"
+            echo "  1. SERVER_IP is correct and reachable"
+            echo "  2. SSH port 22 is open"
+            echo "  3. Server is not blocking GitHub Actions IP ranges"
+            exit 1
+          }
+          echo "Successfully added server to known hosts"
 
       - name: Deploy to Server
         run: |
