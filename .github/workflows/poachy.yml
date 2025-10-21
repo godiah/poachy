@@ -135,10 +135,10 @@ jobs:
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
 
-      # Build Docker images with docker-compose
+      # Build Docker images with docker compose
       - name: Build Docker Images
         run: |
-          docker-compose -f docker-compose.yml up -d --build
+          docker compose -f docker-compose.yml up -d --build
           docker ps
 
       # Verify app container is running
@@ -165,7 +165,7 @@ jobs:
 
       # Stop and remove containers after checks
       - name: Stop and Remove Containers
-        run: docker-compose down
+        run: docker compose down
 
   deploy:
     runs-on: ubuntu-latest
@@ -197,8 +197,8 @@ jobs:
           echo "Pulling latest changes from Git..."
           git pull origin ${{ github.ref_name }} || { echo "Error: git pull failed"; exit 1; }
 
-          echo "Stopping existing containers..."
-          docker-compose restart || { echo "Warning: docker-compose restart failed"; }
+          echo "Restarting containers..."
+          docker compose restart || { echo "Warning: docker compose restart failed"; }
 
           echo "Waiting for containers to be healthy..."
           sleep 10
