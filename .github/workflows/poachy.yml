@@ -186,13 +186,13 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} << 'EOF'
           eval $(ssh-agent -s)
-          ssh-add ~/.ssh/github/github  # Ensure correct private key path
+          ssh-add ~/.ssh/poachy  # Ensure correct private key path
 
           # Navigate to your project directory
           cd poachy || { echo "Error: Directory poachy not found"; exit 1; }
 
           # Pull the latest changes
-          if ! git pull origin main; then  # Update to 'main' if needed
+          if ! git pull; then  # Update to 'main' if needed
             echo "Error: git pull failed"
             exit 1
           fi
