@@ -184,19 +184,23 @@ jobs:
 
       - name: Deploy to Droplet
         run: |
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} << 'EOF'
-          eval $(ssh-agent -s)
-          ssh-add ~/.ssh/poachy  # Ensure correct private key path
+          ssh -o StrictHostKeyChecking=no \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=3 \
+              -o ConnectTimeout=10 \
+              root@${{ secrets.SERVER_IP }} << 'EOF'
+          set -e  # Exit on any error
 
-          # Navigate to your project directory
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/poachy
+
           cd poachy || { echo "Error: Directory poachy not found"; exit 1; }
 
-          # Pull the latest changes
-          if ! git pull; then  # Update to 'main' if needed
-            echo "Error: git pull failed"
-            exit 1
-          fi
+          echo "Pulling latest changes..."
+          git pull || { echo "Error: git pull failed"; exit 1; }
 
-          # Restart Docker containers
-          docker-compose restart || { echo "Error: docker-compose restart failed"; exit 1; }
+          echo "Restarting app container..."
+          docker-compose restart app || { echo "Error: docker-compose restart app failed"; exit 1; }
+
+          echo "Deploy completed successfully!"
           EOF
